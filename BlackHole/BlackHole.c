@@ -150,7 +150,7 @@ struct ObjectInfo {
 
 
 #ifndef kDriver_Name
-#define                             kDriver_Name                        "BlackHole"
+#define                             kDriver_Name                        "Clarity"
 #endif
 
 #ifndef kPlugIn_BundleID
@@ -174,11 +174,11 @@ struct ObjectInfo {
 
 
 #ifndef kDevice_Name
-#define                             kDevice_Name                        kDriver_Name " %ich"
+#define                             kDevice_Name                        "Clarity Speaker"
 #endif
 
 #ifndef kDevice2_Name
-#define                             kDevice2_Name                       kDriver_Name " %ich 2"
+#define                             kDevice2_Name                       "Clarity Microphone"
 #endif
 
 
