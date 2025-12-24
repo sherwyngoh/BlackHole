@@ -1,0 +1,46 @@
+{
+  "buildCommand" : {
+    "command" : "build",
+    "skipDependencies" : false,
+    "style" : "buildAndRun"
+  },
+  "configuredTargets" : [
+    {
+      "guid" : "e6f6a41ed081da888a86742289947deb6f47ea13fcc7f5e80e641ff11dbe4543"
+    }
+  ],
+  "containerPath" : "/Users/sherwyngoh/Documents/GitHub/Clarify/BlackHole/BlackHole.xcodeproj",
+  "continueBuildingAfterErrors" : false,
+  "dependencyScope" : "workspace",
+  "enableIndexBuildArena" : false,
+  "hideShellScriptEnvironment" : false,
+  "parameters" : {
+    "action" : "build",
+    "configurationName" : "Release",
+    "overrides" : {
+      "commandLine" : {
+        "table" : {
+          "CODE_SIGN_IDENTITY" : "Developer ID Application",
+          "CODE_SIGN_STYLE" : "Manual",
+          "CONFIGURATION_BUILD_DIR" : "build",
+          "DEVELOPMENT_TEAM" : "544929U6B4",
+          "GCC_PREPROCESSOR_DEFINITIONS" : "$GCC_PREPROCESSOR_DEFINITIONS \n      kNumber_Of_Channels=2 \n      kPlugIn_BundleID=\\\"audio.existential.BlackHole2ch\\\" \n      kDriver_Name=\\\"BlackHole\\\"",
+          "MACOSX_DEPLOYMENT_TARGET" : "10.13",
+          "PRODUCT_BUNDLE_IDENTIFIER" : "audio.existential.BlackHole2ch"
+        }
+      },
+      "synthesized" : {
+        "table" : {
+          "ACTION" : "build",
+          "ENABLE_PREVIEWS" : "NO",
+          "ENABLE_XOJIT_PREVIEWS" : "NO"
+        }
+      }
+    }
+  },
+  "showNonLoggedProgress" : true,
+  "useDryRun" : false,
+  "useImplicitDependencies" : false,
+  "useLegacyBuildLocations" : false,
+  "useParallelTargets" : false
+}

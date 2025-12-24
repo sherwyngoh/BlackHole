@@ -8,9 +8,9 @@ set -euo pipefail
 #   chmod +x create_installer.sh
 
 driverName="BlackHole"
-devTeamID="Q5C99V536K" # ⚠️ Replace this with your own developer team ID
+devTeamID="544929U6B4" # ⚠️ Replace this with your own developer team ID
 notarize=true # To skip notarization, set this to false
-notarizeProfile="notarize" # ⚠️ Replace this with your own notarytool keychain profile name
+notarizeProfile="AC_PROFILE" # ⚠️ Replace this with your own notarytool keychain profile name
 
 ############################################################################
 
@@ -43,6 +43,10 @@ for channels in 2 16 64 128 256; do
       -configuration Release \
       -target BlackHole CONFIGURATION_BUILD_DIR=build \
       PRODUCT_BUNDLE_IDENTIFIER=$bundleID \
+      MACOSX_DEPLOYMENT_TARGET=10.13 \
+      CODE_SIGN_STYLE=Manual \
+      CODE_SIGN_IDENTITY="Developer ID Application" \
+      DEVELOPMENT_TEAM=$devTeamID \
       GCC_PREPROCESSOR_DEFINITIONS='$GCC_PREPROCESSOR_DEFINITIONS 
       kNumber_Of_Channels='$channels' 
       kPlugIn_BundleID=\"'$bundleID'\" 
