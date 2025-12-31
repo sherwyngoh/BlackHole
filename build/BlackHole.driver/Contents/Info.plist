@@ -28,14 +28,14 @@
 	<string>596</string>
 	<key>CFPlugInFactories</key>
 	<dict>
-		<key>D100E9A2-F4EB-4FC1-A501-6FD93E69CFFB</key>
+		<key>e395c745-4eea-4d94-bb92-46224221047c</key>
 		<string>BlackHole_Create</string>
 	</dict>
 	<key>CFPlugInTypes</key>
 	<dict>
 		<key>443ABAB8-E7B3-491A-B985-BEB9187030DB</key>
 		<array>
-			<string>D100E9A2-F4EB-4FC1-A501-6FD93E69CFFB</string>
+			<string>e395c745-4eea-4d94-bb92-46224221047c</string>
 		</array>
 	</dict>
 	<key>DTCompiler</key>

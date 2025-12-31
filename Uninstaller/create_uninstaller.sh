@@ -1,9 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-devTeamID="Q5C99V536K" # ⚠️ Replace this with your own developer team ID
+devTeamID="544929U6B4" # ⚠️ Replace this with your own developer team ID
 notarize=true # To skip notarization, set this to false
-notarizeProfile="notarize" # ⚠️ Replace this with your own notarytool keychain profile name
+notarizeProfile="AC_PROFILE" # ⚠️ Replace this with your own notarytool keychain profile name
 
 # Basic Validation
 if [ ! -d BlackHole.xcodeproj ]; then

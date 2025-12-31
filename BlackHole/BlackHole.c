@@ -150,7 +150,7 @@ struct ObjectInfo {
 
 
 #ifndef kDriver_Name
-#define                             kDriver_Name                        "Clarity"
+#define                             kDriver_Name                        "Clarify"
 #endif
 
 #ifndef kPlugIn_BundleID
@@ -174,11 +174,11 @@ struct ObjectInfo {
 
 
 #ifndef kDevice_Name
-#define                             kDevice_Name                        "Clarity Speaker"
+#define                             kDevice_Name                        "Clarify Mic"
 #endif
 
 #ifndef kDevice2_Name
-#define                             kDevice2_Name                       "Clarity Microphone"
+#define                             kDevice2_Name                       "Clarify Microphone"
 #endif
 
 
@@ -3140,7 +3140,7 @@ static OSStatus	BlackHole_GetStreamPropertyData(AudioServerPlugInDriverRef inDri
 			//	such as a speaker or headphones, or a microphone. Values for this property
 			//	are defined in <CoreAudio/AudioHardwareBase.h>
 			FailWithAction(inDataSize < sizeof(UInt32), theAnswer = kAudioHardwareBadPropertySizeError, Done, "BlackHole_GetStreamPropertyData: not enough space for the return value of kAudioStreamPropertyTerminalType for the stream");
-			*((UInt32*)outData) = (inObjectID == kObjectID_Stream_Input) ? kAudioStreamTerminalTypeMicrophone : kAudioStreamTerminalTypeSpeaker;
+			*((UInt32*)outData) = (inObjectID == kObjectID_Stream_Input) ? kAudioStreamTerminalTypeSpeaker : kAudioStreamTerminalTypeMicrophone;
 			*outDataSize = sizeof(UInt32);
 			break;
 

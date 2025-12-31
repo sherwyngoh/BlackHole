@@ -85,11 +85,10 @@ for channels in 2 16 64 128 256; do
     # Create installer with productbuild
     cd Installer
     
-    echo "<?xml version=\"1.0\" encoding='utf-8'?>
+    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
     <installer-gui-script minSpecVersion='2'>
         <title>$driverName: Audio Loopback Driver ($ch) $version</title>
         <welcome file='welcome.html'/>
-        <license file='../LICENSE'/>
         <conclusion file='conclusion.html'/>
         <domains enable_anywhere='false' enable_currentUserHome='false' enable_localSystem='true'/>
         <pkg-ref id=\"$bundleID\"/>
