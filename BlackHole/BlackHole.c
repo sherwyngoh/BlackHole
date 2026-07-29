@@ -4526,8 +4526,43 @@ static OSStatus	BlackHole_DoIOOperation(AudioServerPlugInDriverRef inDriver, Aud
 	FailWithAction(inDeviceObjectID != kObjectID_Device && inDeviceObjectID != kObjectID_Device2, theAnswer = kAudioHardwareBadObjectError, Done, "BlackHole_DoIOOperation: bad device ID");
 	FailWithAction((inStreamObjectID != kObjectID_Stream_Input) && (inStreamObjectID != kObjectID_Stream_Output), theAnswer = kAudioHardwareBadObjectError, Done, "BlackHole_DoIOOperation: bad stream ID");
 
-    // Calculate the ring buffer offsets and splits.
-    UInt64 mSampleTime = inOperationID == kAudioServerPlugInIOOperationReadInput ? inIOCycleInfo->mInputTime.mSampleTime : inIOCycleInfo->mOutputTime.mSampleTime;
+    // Loopback timing. Clarify presents each virtual device single-direction to
+    // macOS (Clarify Mic as a mic only, Clarify Speaker as a speaker only) and
+    // does its own side of the loopback through the driver's HIDDEN companion
+    // device. The visible device and the hidden companion share this one
+    // gRingBuffer but run on INDEPENDENT sample clocks, so a reader can't use its
+    // OWN mInputTime to find what a writer put in the buffer — a cross-device read
+    // would land on the wrong position and return silence. Instead, anchor reads
+    // to the LAST WRITE position (a shared value): any device's input then returns
+    // the most-recently-written block regardless of whose clock it's on.
+    // gCyclesSinceWrite forces silence when nobody is writing (so a stopped writer
+    // doesn't loop stale audio). This keeps normal same-device loopback working too.
+    static Float64 lastOutputSampleTime = 0;
+    static Boolean isBufferClear = true;
+    static volatile SInt32 gCyclesSinceWrite = 1000;
+    static UInt64 gReadPos = 0;
+
+    UInt64 mSampleTime;
+    if (inOperationID == kAudioServerPlugInIOOperationReadInput)
+    {
+        // Sequential FIFO read. Anchoring every read to the write frontier made
+        // the reader repeat/skip blocks (glitches) when its cadence differed from
+        // the writer's; instead advance a read pointer by one buffer each call.
+        // Resync (jump to ~2 buffers behind the writer) only on underrun (we
+        // caught up) or excessive drift, so playback stays continuous.
+        UInt64 frontier = (UInt64)lastOutputSampleTime;
+        UInt64 oneBuf = inIOBufferFrameSize;
+        if (gReadPos + oneBuf > frontier || gReadPos + 6 * oneBuf < frontier)
+        {
+            gReadPos = (frontier > 2 * oneBuf) ? (frontier - 2 * oneBuf) : 0;
+        }
+        mSampleTime = gReadPos;
+        gReadPos += oneBuf;
+    }
+    else
+    {
+        mSampleTime = inIOCycleInfo->mOutputTime.mSampleTime;
+    }
     UInt32 ringBufferFrameLocationStart = mSampleTime % kRing_Buffer_Frame_Size;
     UInt32 firstPartFrameSize = kRing_Buffer_Frame_Size - ringBufferFrameLocationStart;
     UInt32 secondPartFrameSize = 0;
@@ -4541,15 +4576,13 @@ static OSStatus	BlackHole_DoIOOperation(AudioServerPlugInDriverRef inDriver, Aud
         secondPartFrameSize = inIOBufferFrameSize - firstPartFrameSize;
     }
     
-    // Keep track of last outputSampleTime and the cleared buffer status.
-    static Float64 lastOutputSampleTime = 0;
-    static Boolean isBufferClear = true;
-    
     // From BlackHole to Application
     if(inOperationID == kAudioServerPlugInIOOperationReadInput)
     {
-        // If mute is one let's just fill the buffer with zeros or if there's no apps outputting audio
-        if (gMute_Master_Value || lastOutputSampleTime - inIOBufferFrameSize < inIOCycleInfo->mInputTime.mSampleTime)
+        // Silence when muted, or when nobody has written recently (clock-independent
+        // staleness — the old check compared the reader's mInputTime to the writer's
+        // sample time, which is meaningless across two independent device clocks).
+        if (gMute_Master_Value || gCyclesSinceWrite > 4)
         {
             // Clear the ioMainBuffer
             vDSP_vclr(ioMainBuffer, 1, inIOBufferFrameSize * kNumber_Of_Channels);
@@ -4573,21 +4606,23 @@ static OSStatus	BlackHole_DoIOOperation(AudioServerPlugInDriverRef inDriver, Aud
 	 	vDSP_vsmul(ioMainBuffer, 1, &gVolume_Master_Value, ioMainBuffer, 1, inIOBufferFrameSize * kNumber_Of_Channels);
 	    }
 
+            gCyclesSinceWrite++;   // ages toward the silence threshold if writes stop
         }
     }
     
     // From Application to BlackHole
     if(inOperationID == kAudioServerPlugInIOOperationWriteMix)
     {
-        
-        // Overload error.
-        if (inIOCycleInfo->mCurrentTime.mSampleTime > inIOCycleInfo->mOutputTime.mSampleTime + inIOBufferFrameSize + kLatency_Frame_Size)
-        {
-            DebugMsg("BlackHole overload error. kAudioServerPlugInIOOperationWriteMix was unable to complete operation before the deadline. Try increasing the buffer frame size.");
-            return kAudioHardwareUnspecifiedError;
-        }
-        
-        
+        // A writer is active this cycle. Reset BEFORE anything can bail out so a
+        // reader never falsely sees the buffer as stale.
+        gCyclesSinceWrite = 0;
+
+        // NOTE: stock BlackHole returned an error here when the write was "late"
+        // (mCurrentTime past the deadline), which DROPPED the whole buffer. For
+        // Clarify's cross-device loopback that surfaced as silence on the capture
+        // side, especially on the 16-channel Speaker device. We write it anyway —
+        // marginally stale audio is far better than a dropout.
+
         // Copy the buffers.
         memcpy(gRingBuffer + ringBufferFrameLocationStart * kNumber_Of_Channels, ioMainBuffer, firstPartFrameSize * kNumber_Of_Channels * sizeof(Float32));
         memcpy(gRingBuffer, (Float32*)ioMainBuffer + firstPartFrameSize * kNumber_Of_Channels, secondPartFrameSize * kNumber_Of_Channels * sizeof(Float32));
@@ -4595,6 +4630,7 @@ static OSStatus	BlackHole_DoIOOperation(AudioServerPlugInDriverRef inDriver, Aud
         // Save the last output time.
         lastOutputSampleTime = inIOCycleInfo->mOutputTime.mSampleTime + inIOBufferFrameSize;
         isBufferClear = false;
+        gCyclesSinceWrite = 0;   // fresh audio available for readers
     }
 
 Done:
